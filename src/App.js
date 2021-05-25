@@ -435,8 +435,12 @@ class App extends React.Component {
     } else {
       // * Check if permission is already granted, show the notification
       if (Notification.permission === "granted") {
-        new Notification(heading, {
-          body: body,
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          if(registrations && Array.isArray(registrations) && registrations.length) {
+            registrations[0].showNotification(heading, {
+              body: body
+            });
+          }
         });
       }
 
@@ -445,9 +449,7 @@ class App extends React.Component {
         Notification.requestPermission()
         .then(permission => {
           if (permission === "granted") {
-            new Notification(heading, {
-              body: body,
-            });
+            this.notifyVaccineAvailability();
           } else {
             alert("Please allow notifications to proceed further");
           }
@@ -662,7 +664,7 @@ class App extends React.Component {
     }
 
     // * Setting up the UI
-    return (
+  return (
       <div>
         <Card>
           <CardContent>
@@ -679,7 +681,7 @@ class App extends React.Component {
                 onChange={this.selectState}
                 label="Select State"
                 error={this.state.hasError && !this.stateSelected()}
-              >
+        >
                 {states.map((state) => (
                   <MenuItem key={state.state_id} value={state.state_id}>
                     {state.state_name}
@@ -847,14 +849,14 @@ class App extends React.Component {
         <center><b>Total Views</b></center>
         <br />
         <center>
-          <a href="https://www.hitwebcounter.com" target="_blank">
+          <a href="https://www.hitwebcounter.com" target="_blank" rel="noreferrer">
             <img src="https://hitwebcounter.com/counter/counter.php?page=7816923&style=0005&nbdigits=9&type=page&initCount=0" title="Free Counter" Alt="web counter" border="0" />
-          </a>
+        </a>
         </center>
         <br />
-      </div>
-    );
-  }
+    </div>
+  );
+}
 }
 
 export default withStyles(styles)(App);
