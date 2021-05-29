@@ -37,8 +37,12 @@ import {
   Search,
   ViewColumn,
   Notifications,
-  Close
+  Close,
+  ArrowForward,
+  Visibility,
+  VisibilityOff
 } from "@material-ui/icons";
+import ConfirmModal from './components/ConfirmModal';
 
 // * Icons used in material  table
 const tableIcons = {
@@ -68,6 +72,12 @@ const styles = (theme) => ({
     minWidth: 150,
   },
 });
+
+// * Cowin API Endpoints
+const endpoints = {
+  searchByDistrict: 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict',
+  searchByPincode: 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin',
+}
 
 class App extends React.Component {
 
@@ -100,8 +110,8 @@ class App extends React.Component {
         value: "SPUTNIK V"
       }
     ],
-    minDose1: 0,
-    minDose2: 0,
+    minDose1: 1,
+    minDose2: 1,
     selectedVaccinePrice: "both",
     prices: [
       {
@@ -146,7 +156,22 @@ class App extends React.Component {
     hasError: false,
     inDevelopment: false,
     hasSearched: false,
-    initialized: false
+    initialized: false,
+    showBookVaccineConfirmationModal: false,
+    searchOptions: [
+      {
+        id: 1,
+        name: "District",
+        value: "district",
+      },
+      {
+        id: 2,
+        name: "Pincode",
+        value: "pincode",
+      }
+    ],
+    selectedSearchBy: 'district',
+    searchAPIEndpoint: endpoints.searchByDistrict
   };
 
   /*
@@ -257,22 +282,26 @@ class App extends React.Component {
   *	Description:- This method is used to fetch the vaccine centres by date
   */
   fetchVaccinesCentresByDate(date1, date2) {
-    let centres = [];
+    let centres = [], baseEndpoint = this.state.searchAPIEndpoint;
+    // * Setting up endpoint based on the value in search by combobox
+    if(this.state.selectedSearchBy === 'pincode') {
+      baseEndpoint += '?pincode=' + this.state.pincode;
+    } else if(this.state.selectedSearchBy === 'district') {
+      baseEndpoint += '?district_id=' + this.state.selectedDistrict;
+    }
     fetch(
-      "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=" +
-        this.state.selectedDistrict +
-        "&date=" +
-        date1
+      baseEndpoint +
+      "&date=" +
+      date1
     )
     .then((res) => res.json())
     .then((json) => {
       centres = json.centers;
       if (date2) {
         fetch(
-          "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=" +
-            this.state.selectedDistrict +
-            "&date=" +
-            date2
+          baseEndpoint +
+          "&date=" +
+          date2
         )
         .then((res) => res.json())
         .then((json) => {
@@ -332,12 +361,12 @@ class App extends React.Component {
         // * Add minimum first dose filter
         if (that.state.minDose1 > 0) {
           condition = condition && session.available_capacity_dose1 >= that.state.minDose1;
-          that.logMessage('Minimum Capacity Dose 1: ' + that.state.minDose1);
+          that.logMessage('Minimum Capacity 1st Dose: ' + that.state.minDose1);
         }
         // * Add minimum second dose filter
         if (that.state.minDose2 > 0) {
           condition = condition && session.available_capacity_dose2 >= that.state.minDose2;
-          that.logMessage('Minimum Capacity Dose 2: ' + that.state.minDose2);
+          that.logMessage('Minimum Capacity 2nd Dose: ' + that.state.minDose2);
         }
         // * Add centre ids to skip filter
         if (that.state.centreIdsToSkip.length) {
@@ -488,18 +517,34 @@ class App extends React.Component {
 
   /*
   *	Author:- Rahul Malhotra
-  *	Description:- This method is called when minimum quantity of dose 1 is entered
+  *	Description:- This method is called when minimum quantity of 1st dose is updated
   */
   setMinimumDose1 = event => {
-    this.setState({ minDose1: event.target.value });
+    let value = event.target.value;
+    // * If a value is entered, use that
+    if(value) {
+      this.setState({ minDose1: value });
+    }
+    // * If the field is empty, set the value to 0
+    else {
+      this.setState({ minDose1: 0 });
+    }
   };
 
   /*
   *	Author:- Rahul Malhotra
-  *	Description:- This method is called when minimum quantity of dose 2 is entered
+  *	Description:- This method is called when minimum quantity of 2nd dose is updated
   */
   setMinimumDose2 = event => {
-    this.setState({ minDose2: event.target.value });
+    let value = event.target.value;
+    // * If a value is entered, use that
+    if(value) {
+      this.setState({ minDose2: value });
+    }
+    // * If the field is empty, set the value to 0
+    else {
+      this.setState({ minDose2: 0 });
+    }
   };
 
   /*
@@ -577,7 +622,12 @@ class App extends React.Component {
   *	Description:- This method is used to validate the input when search button is clicked
   */
   validateInput() {
-    let isValid = this.stateSelected() && this.districtSelected();
+    let isValid = true;
+    if(this.state.selectedSearchBy === 'pincode') {
+      isValid = this.pincodeEntered();
+    } else if(this.state.selectedSearchBy === 'district') {
+      isValid = this.stateSelected() && this.districtSelected();
+    }
     if(!isValid) {
       this.setState({
         hasError: true
@@ -603,11 +653,121 @@ class App extends React.Component {
 
   /*
   *	Author:- Rahul Malhotra
+  *	Description:- This method is called when user confirms that he/she wants to book the slot
+  */
+  bookVaccineSlot() {
+    window.open('https://selfregistration.cowin.gov.in/', '_blank');
+  }
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is used to display confirmation modal for vaccine booking
+  */
+  displayBookVaccineModal() {
+    this.setState({
+      showBookVaccineConfirmationModal: true
+    });
+  }
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is used to close confirmation modal for vaccine booking
+  */
+  closeBookVaccineModal() {
+    this.setState({
+      showBookVaccineConfirmationModal: false
+    });
+  }
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is called when a value is selected in searchBy field
+  */
+  selectSearchBy = event => {
+    const value = event.target.value;
+    // * Setting up the API endpoint
+    if(value === 'pincode') {
+      this.setState({
+        searchAPIEndpoint: endpoints.searchByPincode
+      });
+    } else if(value === 'district') {
+      this.setState({
+        searchAPIEndpoint: endpoints.searchByDistrict
+      });
+    }
+    // * Setting up the selected value
+    this.setState({
+      selectedSearchBy: value,
+    });
+    // * Clearing the vaccines data
+    this.setState({
+      vaccinesData: []
+    });
+  };
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method will return true if pincode is entered, used for validation
+  */
+  pincodeEntered() {
+    return this.state.pincode ? true : false;
+  }
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is used to set pincode's value when pincode is updated by user
+  */
+  setPincode = event => {
+    this.setState({
+      pincode: event.target.value
+    });
+  }
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is called when minimum quantity of 1st dose text is focused
+  */
+  focusMinimumDose1 = event => {
+    event.target.select();
+  };
+
+  /*
+  *	Author:- Rahul Malhotra
+  *	Description:- This method is called when minimum quantity of 2nd dose text is focused
+  */
+  focusMinimumDose2 = event => {
+    event.target.select();
+  };
+
+  /*
+  *	Author:- Rahul Malhotra
   *	Description:- This method is used to render the UI
   */
   render() {
     const { classes } = this.props;
-    const { states, districts, vaccines, prices, ages, centreIdsToSkip } = this.state;
+    const {
+      states,
+      districts,
+      vaccines,
+      prices,
+      ages,
+      centreIdsToSkip,
+      searchOptions,
+      hasSearched,
+      vaccinesData,
+      notify,
+      selectedSearchBy,
+      pincode,
+      hasError,
+      selectedState,
+      selectedDistrict,
+      selectedAge,
+      selectedVaccine,
+      selectedVaccinePrice,
+      minDose1,
+      minDose2,
+      showBookVaccineConfirmationModal
+    } = this.state;
     let showHiddenVaccineCentersButton, notifyButton, clearNotifyButton;
 
     // * Setting up show hidden vaccination centres button
@@ -618,6 +778,7 @@ class App extends React.Component {
             variant="contained"
             color="secondary"
             onClick={this.clearCentreIdsToSkip.bind(this)}
+            startIcon={<Visibility />}
           >
             Show Hidden Vaccination Centres
           </Button>
@@ -627,11 +788,20 @@ class App extends React.Component {
 
     // * Setting up notifications button
     if (
-      this.state.hasSearched &&
-      this.state.vaccinesData.length === 0 &&
-      !this.state.notify &&
-      this.stateSelected() &&
-      this.districtSelected()
+      hasSearched &&
+      vaccinesData.length === 0 &&
+      !notify &&
+      (
+        (
+          selectedSearchBy === 'district' &&
+          this.stateSelected() &&
+          this.districtSelected()
+        ) ||
+        (
+          selectedSearchBy === 'pincode' &&
+          this.pincodeEntered()
+        )
+      )
     ) {
       notifyButton = (
         <FormControl className={classes.formControl}>
@@ -648,7 +818,7 @@ class App extends React.Component {
     }
 
     // * Setting up stop notifications button
-    if (this.state.notify) {
+    if (notify) {
       clearNotifyButton = (
         <FormControl className={classes.formControl}>
           <Button
@@ -666,69 +836,114 @@ class App extends React.Component {
     // * Setting up the UI
   return (
       <div>
-        <Card>
+        <Card style={{ margin: '1rem' }}>
           <CardContent>
             <Typography gutterBottom variant="h5" component="h2">
               COVID-19 Vaccine Notification System
             </Typography>
             {/* Form Inputs */}
-            <FormControl required variant="outlined" className={classes.formControl} error={this.state.hasError && !this.stateSelected()}>
-              <InputLabel id="state-label">Select State</InputLabel>
-              <Select
-                labelId="state-label"
-                id="state-input"
-                value={this.state.selectedState}
-                onChange={this.selectState}
-                label="Select State"
-                error={this.state.hasError && !this.stateSelected()}
-        >
-                {states.map((state) => (
-                  <MenuItem key={state.state_id} value={state.state_id}>
-                    {state.state_name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {
-                this.state.hasError && !this.stateSelected() &&
-                (
-                  <FormHelperText>Please select a state</FormHelperText>
-                )
-              }
-            </FormControl>
-            <FormControl required variant="outlined" className={classes.formControl} error={this.state.hasError && !this.districtSelected()}>
-              <InputLabel id="district-label">Select District</InputLabel>
-              <Select
-                labelId="district-label"
-                id="district-input"
-                value={this.state.selectedDistrict}
-                onChange={this.selectDistrict}
-                label="Select District"
-                error={this.state.hasError && !this.districtSelected()}
-              >
-                {districts.map((district) => (
-                  <MenuItem
-                    key={district.district_id}
-                    value={district.district_id}
-                  >
-                    {district.district_name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {
-                this.state.hasError && !this.districtSelected() &&
-                (
-                  <FormHelperText>Please select a district</FormHelperText>
-                )
-              }
-            </FormControl>
             <FormControl variant="outlined" className={classes.formControl}>
-              <InputLabel id="vaccine-label">Select Vaccine</InputLabel>
+              <InputLabel id="searchBy-label">Search by</InputLabel>
+              <Select
+                labelId="searchBy-label"
+                id="searchBy-input"
+                value={selectedSearchBy}
+                onChange={this.selectSearchBy}
+                label="Search by"
+                autoFocus
+                >
+                {searchOptions.map((searchOption) => (
+                  <MenuItem key={searchOption.id} value={searchOption.value}>
+                    {searchOption.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {
+              (selectedSearchBy === 'pincode') && (
+                <FormControl required variant="outlined" className={classes.formControl} error={pincode && !this.pincodeEntered()}>
+                  <TextField
+                    required
+                    id="outlined-pincode"
+                    label="Enter pincode"
+                    variant="outlined"
+                    value={pincode}
+                    type="number"
+                    onChange={this.setPincode}
+                    error={hasError && !this.pincodeEntered()}
+                    helperText={
+                      hasError && !this.pincodeEntered() &&
+                      (
+                        "Please enter pincode"
+                      )
+                    }
+                  />
+                </FormControl>
+              )
+            }
+            {
+              (selectedSearchBy === 'district') && (
+                <span>
+                  <FormControl required variant="outlined" className={classes.formControl} error={hasError && !this.stateSelected()}>
+                  <InputLabel id="state-label">Select state</InputLabel>
+                  <Select
+                    labelId="state-label"
+                    id="state-input"
+                    value={selectedState}
+                    onChange={this.selectState}
+                    label="Select state"
+                    error={hasError && !this.stateSelected()}
+                  >
+                    {states.map((state) => (
+                      <MenuItem key={state.state_id} value={state.state_id}>
+                        {state.state_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {
+                    hasError && !this.stateSelected() &&
+                    (
+                      <FormHelperText>Please select a state</FormHelperText>
+                    )
+                  }
+                </FormControl>
+                  <FormControl required variant="outlined" className={classes.formControl} error={hasError && !this.districtSelected()}>
+                    <InputLabel id="district-label">Select district</InputLabel>
+                    <Select
+                      labelId="district-label"
+                      id="district-input"
+                      value={selectedDistrict}
+                      onChange={this.selectDistrict}
+                      label="Select district"
+                      error={hasError && !this.districtSelected()}
+                    >
+                      {districts.map((district) => (
+                        <MenuItem
+                          key={district.district_id}
+                          value={district.district_id}
+                        >
+                          {district.district_name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {
+                      hasError && !this.districtSelected() &&
+                      (
+                        <FormHelperText>Please select a district</FormHelperText>
+                      )
+                    }
+                  </FormControl>
+                </span>
+              )
+            }
+            <FormControl variant="outlined" className={classes.formControl}>
+              <InputLabel id="vaccine-label">Select vaccine</InputLabel>
               <Select
                 labelId="vaccine-label"
                 id="vaccine-input"
-                value={this.state.selectedVaccine}
+                value={selectedVaccine}
                 onChange={this.selectVaccine}
-                label="Select Vaccine"
+                label="Select vaccine"
               >
                 {vaccines.map((vaccine) => (
                   <MenuItem key={vaccine.id} value={vaccine.value}>
@@ -738,13 +953,13 @@ class App extends React.Component {
               </Select>
             </FormControl>
             <FormControl variant="outlined" className={classes.formControl}>
-              <InputLabel id="price-label">Select Price</InputLabel>
+              <InputLabel id="price-label">Select price</InputLabel>
               <Select
                 labelId="price-label"
                 id="price-input"
-                value={this.state.selectedVaccinePrice}
+                value={selectedVaccinePrice}
                 onChange={this.selectVaccinePrice}
-                label="Select Price"
+                label="Select price"
               >
                 {prices.map((price) => (
                   <MenuItem key={price.id} value={price.value}>
@@ -754,13 +969,13 @@ class App extends React.Component {
               </Select>
             </FormControl>
             <FormControl variant="outlined" className={classes.formControl}>
-              <InputLabel id="age-label">Minimum Age</InputLabel>
+              <InputLabel id="age-label">Minimum age</InputLabel>
               <Select
                 labelId="age-label"
                 id="age-input"
-                value={this.state.selectedAge}
+                value={selectedAge}
                 onChange={this.selectAge}
-                label="Minimum Age"
+                label="Minimum age"
               >
                 {ages.map((age) => (
                   <MenuItem key={age.id} value={age.value}>
@@ -772,21 +987,26 @@ class App extends React.Component {
             <FormControl variant="outlined" className={classes.formControl}>
               <TextField
                 id="outlined-min-vaccine-dose-1"
-                label="Minimum Quantity Dose 1"
+                label="Quantity required - 1st dose"
                 variant="outlined"
-                value={this.state.minDose1}
+                value={minDose1}
+                type="number"
                 onChange={this.setMinimumDose1}
+                onFocus={this.focusMinimumDose1}
               />
             </FormControl>
             <FormControl variant="outlined" className={classes.formControl}>
               <TextField
                 id="outlined-min-vaccine-dose-2"
-                label="Minimum Quantity Dose 2"
+                label="Quantity required - 2nd dose"
                 variant="outlined"
-                value={this.state.minDose2}
+                value={minDose2}
+                type="number"
                 onChange={this.setMinimumDose2}
+                onFocus={this.focusMinimumDose2}
               />
             </FormControl>
+            <br />
             <FormControl className={classes.formControl}>
               <Button
                 variant="contained"
@@ -800,10 +1020,21 @@ class App extends React.Component {
             {showHiddenVaccineCentersButton}
             {notifyButton}
             {clearNotifyButton}
+            <FormControl className={classes.formControl}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={this.displayBookVaccineModal.bind(this)}
+                endIcon={<ArrowForward />}
+              >
+                Book Vaccination Slot
+              </Button>
+              <ConfirmModal open={showBookVaccineConfirmationModal} onConfirm={this.bookVaccineSlot.bind(this)} onReject={this.closeBookVaccineModal.bind(this)} onClose={this.closeBookVaccineModal.bind(this)} heading="Book Vaccination Slot?" description="Please make sure that you take a note of the center details before proceeding" confirmButtonText="Yes" rejectButtonText="No" />
+            </FormControl>
           </CardContent>
         </Card>
         {/* Data Table */}
-        <div style={{ maxWidth: "100%" }}>
+        <div style={{ maxWidth: "100%", margin: '1rem' }}>
           <MaterialTable
             icons={tableIcons}
             columns={[
@@ -813,31 +1044,31 @@ class App extends React.Component {
               { title: "Vaccine Name", field: "vaccineName" },
               { title: "Minimum Age Required", field: "minAge" },
               { title: "Price", field: "price" },
-              { title: "Dose 1 Availability", field: "dose1Availability", type: "numeric" },
-              { title: "Dose 2 Availability", field: "dose2Availability", type: "numeric" }
+              { title: "1st Dose Availability", field: "dose1Availability", type: "numeric" },
+              { title: "2nd Dose Availability", field: "dose2Availability", type: "numeric" }
             ]}
-            data={this.state.vaccinesData}
+            data={vaccinesData}
             title="Vaccination Centres"
             options={{ selection: true }}
             actions={[
               {
                 tooltip: "Remove centres from search results",
                 icon: () => {
-                  return <Delete />;
+                  return <VisibilityOff />;
                 },
                 onClick: (event, centres) => {
                   // * Removing selected centres from search results
-                  let centreIdsToSkip = [...this.state.centreIdsToSkip];
+                  let currentCentreIdsToSkip = [...centreIdsToSkip];
                   centres.forEach((centre) =>
-                    centreIdsToSkip.push(centre.center_id)
+                    currentCentreIdsToSkip.push(centre.center_id)
                   );
                   // * Setting up unique centre ids to skip
                   this.setState({
-                    centreIdsToSkip: centreIdsToSkip.filter(this.getUnique),
+                    centreIdsToSkip: currentCentreIdsToSkip.filter(this.getUnique),
                   });
                   // * Removing centres from search results
                   this.setState({
-                    vaccinesData: this.state.vaccinesData.filter((vaccine) => !centreIdsToSkip.includes(vaccine.center_id))
+                    vaccinesData: vaccinesData.filter((vaccine) => !currentCentreIdsToSkip.includes(vaccine.center_id))
                   });
                 },
               },
@@ -846,7 +1077,7 @@ class App extends React.Component {
         </div>
         {/* Hit Counter */}
         <br />
-        <center><b>Total Views</b></center>
+        <center><b>Total Views Worldwide</b></center>
         <br />
         <center>
           <a href="https://www.hitwebcounter.com" target="_blank" rel="noreferrer">
