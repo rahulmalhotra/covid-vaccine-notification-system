@@ -296,21 +296,29 @@ class App extends React.Component {
     )
     .then((res) => res.json())
     .then((json) => {
-      centres = json.centers;
-      if (date2) {
-        fetch(
-          baseEndpoint +
-          "&date=" +
-          date2
-        )
-        .then((res) => res.json())
-        .then((json) => {
-          centres = [...centres, ...json.centers];
+      if(json.centers) {
+        centres = json.centers;
+        if (date2) {
+          fetch(
+            baseEndpoint +
+            "&date=" +
+            date2
+          )
+          .then((res) => res.json())
+          .then((json) => {
+            if(json.centers) {
+              centres = [...centres, ...json.centers];
+              this.setVaccinesData(centres);
+            } else if(json.error) {
+              alert(json.error);
+            }
+          })
+          .catch((error) => this.logMessage(error));
+        } else {
           this.setVaccinesData(centres);
-        })
-        .catch((error) => this.logMessage(error));
-      } else {
-        this.setVaccinesData(centres);
+        }
+      } else if(json.error) {
+        alert(json.error);
       }
     })
     .catch((error) => this.logMessage(error))
@@ -645,10 +653,12 @@ class App extends React.Component {
   *	Description:- This method is used to clear/stop notification search service
   */
   clearNotificationSearch() {
-    clearInterval(this.state.setIntervalId);
-    this.setState({
-      notify: false,
-    });
+    if(this.state.notify) {
+      clearInterval(this.state.setIntervalId);
+      this.setState({
+        notify: false,
+      });
+    }
   }
 
   /*
@@ -703,6 +713,12 @@ class App extends React.Component {
     this.setState({
       vaccinesData: []
     });
+    // * Reset hasSearched
+    this.setState({
+      hasSearched: false
+    });
+    // * Clear notification search
+    this.clearNotificationSearch();
   };
 
   /*
@@ -721,6 +737,8 @@ class App extends React.Component {
     this.setState({
       pincode: event.target.value
     });
+    // * Clear notification search
+    this.clearNotificationSearch();
   }
 
   /*
