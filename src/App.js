@@ -77,6 +77,9 @@ const styles = (theme) => ({
 const endpoints = {
   searchByDistrict: 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict',
   searchByPincode: 'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin',
+  vaccineBooking: 'https://selfregistration.cowin.gov.in/',
+  states: 'https://cdn-api.co-vin.in/api/v2/admin/location/states',
+  districts: 'https://cdn-api.co-vin.in/api/v2/admin/location/districts/'
 }
 
 class App extends React.Component {
@@ -179,7 +182,7 @@ class App extends React.Component {
   *	Description:- This method is used to fetch the list of states
   */
   fetchStates() {
-    fetch("https://cdn-api.co-vin.in/api/v2/admin/location/states")
+    fetch(endpoints.states)
     .then((res) => res.json())
     .then((json) => {
       this.setState({
@@ -196,8 +199,8 @@ class App extends React.Component {
   fetchDistricts(state) {
     const selectedState = state ? state : this.state.selectedState;
     fetch(
-      "https://cdn-api.co-vin.in/api/v2/admin/location/districts/" +
-        selectedState
+      endpoints.districts +
+      selectedState
     )
     .then((res) => res.json())
     .then((json) => {
@@ -666,7 +669,8 @@ class App extends React.Component {
   *	Description:- This method is called when user confirms that he/she wants to book the slot
   */
   bookVaccineSlot() {
-    window.open('https://selfregistration.cowin.gov.in/', '_blank');
+    window.open(endpoints.vaccineBooking, '_blank');
+    this.closeBookVaccineModal();
   }
 
   /*
