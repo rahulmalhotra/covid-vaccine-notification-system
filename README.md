@@ -1,70 +1,74 @@
-# Getting Started with Create React App
+# COVID-19 Vaccine Notification System [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text="COVID-19%20Vaccine%20Notification%20System"%20will%20help%20you%20to%20find%20vaccination%20slots.%20In%20case%20a%20slot%20is%20not%20found,%20the%20app%20will%20continue%20searching%20and%20will%20notify%20you%20the%20moment%20any%20slot%20is%20available%20&%20then%20you%20can%20book%20that%20quickly.&url=https://github.com/rahulmalhotra/covid-vaccine-notification-system&via=rahulcoder&hashtags=covid19,vaccine,vaccineswork,covidvaccine)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+COVID-19 Vaccine Notification System - Get notified when vaccine slots are available.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+COVID-19 Vaccine Notification System will help you to find vaccination slots according to your search preferences. If a vaccination slot is found, great! you can book that right away. If not, you can simply turn on notifications & focus on your work while the app will continue searching for vaccination centers on your behalf. It'll automatically notify you the moment any slot is available & then you can book that quickly. You can use the application [here](https://bit.ly/covidvaccinenotification)
 
-### `npm start`
+## Usage
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+"COVID-19 Vaccine Notification System" is very easy to use. You can use this web app directly or you can also install this application in your desktop or mobile.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+To install it in your desktop just click on the install icon at the right end of the address bar, once you've opened the web application. Below is an example from Google Chrome:
 
-### `npm test`
+![DesktopApplicationInstall](https://github.com/rahulmalhotra/covid-vaccine-notification-system/blob/master/images/DesktopApplicationInstall.JPG)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+In case you're on on your mobile device, once you have the web application opened, you can install it by going to browser options and clicking on the install option. Below is an example from Google Chrome for Android:
 
-### `npm run build`
+![MobileApplicationInstall](https://github.com/rahulmalhotra/covid-vaccine-notification-system/blob/master/images/MobileApplicationInstall.JPG)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+In case you don't find an option to install it on your mobile, you'll have an option to add the application to home screen. You can choose that as well. Please find the below sample image:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+![MobileAddToHomeScreen](https://github.com/rahulmalhotra/covid-vaccine-notification-system/blob/master/images/MobileAddToHomeScreen.JPG)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Note:** Please make sure that you have notifications enabled for the [web application address](https://bit.ly/covidvaccinenotification) on your browser. If you're on your desktop browser, you can turn on notifications from broser settings, you can also allow notifications when you're asked for the same while interacting with the application. In case you're using it or have installed it on your mobile, please make sure that you have allowed notifications for this application or your browser with sound and vibration for best experience.
 
-### `npm run eject`
+**COVID-19 Vaccine Notification System** is now ready for use.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Development
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Prerequisites
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+You should have Node.js installed in your local system. You can download it from [here](https://nodejs.org). If you want to download the code in your local system,
+you can do it by the executing the below command or downloading the code directly as a zip file.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+git clone https://github.com/rahulmalhotra/covid-vaccine-notification-system.git
+```
 
-## Learn More
+### Installing
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+In order to install the necessary modules, after cloning the repository, you can navigate to the base folder and run the below command to install the dependencies:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+npm install
+```
 
-### Code Splitting
+You're now ready to work on "COVID-19 Vaccine Notification System". Looking forward to your contribution.
+## Tools and Softwares used
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+You just need a browser with an internet connection to run this application.
+If you want to make any changes in the code, please make sure that you have [Node.js](https://nodejs.org) installed. You can use any of the IDEs you prefer for development.
+However I like to use VS Code IDE. I'll deploy the changes manually to the web application when I merge a PR, until we have some automation setup for it. The full web application is built on React. You can learn more about it [here](https://reactjs.org/).
 
-### Analyzing the Bundle Size
+Below are the tools or softwares I use personally :-
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+* [VS Code](https://code.visualstudio.com) - Open Source IDE
 
-### Making a Progressive Web App
+## Todo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- [ ] Feature to download vaccine certificates
+- [ ] Feature to search vaccine centers by current location of the user in order to show vaccine slots nearby
 
-### Advanced Configuration
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct and the process for submitting pull requests.
 
-### Deployment
+## Authors
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+* **Rahul Malhotra** - [@rahulcoder](https://twitter.com/rahulcoder)
 
-### `npm run build` fails to minify
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the BSD 3-Clause License - see the [LICENSE.md](LICENSE.md) file for details.
